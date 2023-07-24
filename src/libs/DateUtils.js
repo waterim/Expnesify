@@ -127,7 +127,7 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
  */
 function datetimeToRelative(locale, datetime) {
     const date = getLocalMomentFromDatetime(locale, datetime);
-    return formatDistanceToNow(new Date(date));
+    return formatDistanceToNow(new Date(date), {addSuffix: true});
 }
 
 /**
