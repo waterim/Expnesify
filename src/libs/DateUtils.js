@@ -1,4 +1,6 @@
-import moment from 'moment-timezone';
+import {zonedTimeToUtc, formatInTimeZone, format} from 'date-fns-tz';
+import {formatDistanceToNow, subMinutes, isBefore, subMilliseconds, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek} from 'date-fns';
+
 import lodashGet from 'lodash/get';
 
 // IMPORTANT: load any locales (other than english) that might be passed to moment.locale()
@@ -45,12 +47,12 @@ Onyx.connect({
  * @private
  */
 function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
-    moment.locale(locale);
     if (!datetime) {
-        return moment.tz(currentSelectedTimezone);
+        const currentDate = new Date();
+        return formatInTimeZone(currentDate, currentSelectedTimezone, "yyyy-MM-dd'T'HH:mm:ssXXX");
     }
-
-    return moment.utc(datetime).tz(currentSelectedTimezone);
+    const date = new Date(datetime);
+    return formatInTimeZone(date, currentSelectedTimezone, "yyyy-MM-dd'T'HH:mm:ssXXX");
 }
 
 /**
@@ -70,7 +72,7 @@ function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = 
  * @returns {String}
  */
 function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone, isLowercase = false) {
-    const date = getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone);
+    const date = new Date(getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone));
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
     let todayAt = Localize.translate(locale, 'common.todayAt');
@@ -78,20 +80,31 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
     let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
 
+    const dateFormatter = 'MMM d';
+    const elseDateFormatter = 'MMM d, yyyy';
+    const timeFormatter = 'p';
+    const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+    const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn: 1}); // Assuming Monday is the start of the week
+
     if (isLowercase) {
         todayAt = todayAt.toLowerCase();
         tomorrowAt = tomorrowAt.toLowerCase();
         yesterdayAt = yesterdayAt.toLowerCase();
     }
 
-    return moment(date).calendar({
-        sameDay: `[${todayAt}] LT${tz}`,
-        nextDay: `[${tomorrowAt}] LT${tz}`,
-        lastDay: `[${yesterdayAt}] LT${tz}`,
-        nextWeek: `MMM D [${at}] LT${tz}`,
-        lastWeek: `MMM D [${at}] LT${tz}`,
-        sameElse: `MMM D, YYYY [${at}] LT${tz}`,
-    });
+    if (isToday(date)) {
+        return `${todayAt} ${format(date, timeFormatter)}${tz}`;
+    }
+    if (isTomorrow(date)) {
+        return `${tomorrowAt} ${format(date, timeFormatter)}${tz}`;
+    }
+    if (isYesterday(date)) {
+        return `${yesterdayAt} ${format(date, timeFormatter)}${tz}`;
+    }
+    if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
+        return `${format(date, dateFormatter)} ${at} ${format(date, timeFormatter)}${tz}`;
+    }
+    return `${format(date, elseDateFormatter)} ${at} ${format(date, timeFormatter)}${tz}`;
 }
 
 /**
@@ -114,15 +127,14 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
  */
 function datetimeToRelative(locale, datetime) {
     const date = getLocalMomentFromDatetime(locale, datetime);
-
-    return moment(date).fromNow();
+    return formatDistanceToNow(new Date(date));
 }
 
 /**
  * A throttled version of a function that updates the current date in Onyx store
  */
 const updateCurrentDate = _.throttle(() => {
-    const currentDate = moment().format('YYYY-MM-DD');
+    const currentDate = format(new Date(), 'yyyy-MM-dd');
     CurrentDate.setCurrentDate(currentDate);
 }, 1000 * 60 * 60 * 3); // 3 hours
 
@@ -140,7 +152,7 @@ function startCurrentDateUpdater() {
  * @returns {Object}
  */
 function getCurrentTimezone() {
-    const currentTimezone = moment.tz.guess(true);
+    const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (timezone.automatic && timezone.selected !== currentTimezone) {
         return {...timezone, selected: currentTimezone};
     }
@@ -148,17 +160,20 @@ function getCurrentTimezone() {
 }
 
 // Used to throttle updates to the timezone when necessary
-let lastUpdatedTimezoneTime = moment();
+let lastUpdatedTimezoneTime = new Date();
 
 /**
  * @returns {Boolean}
  */
 function canUpdateTimezone() {
-    return lastUpdatedTimezoneTime.isBefore(moment().subtract(5, 'minutes'));
+    const currentTime = new Date();
+    const fiveMinutesAgo = subMinutes(currentTime, 5);
+    // Compare the last updated time with five minutes ago
+    return isBefore(lastUpdatedTimezoneTime, fiveMinutesAgo);
 }
 
 function setTimezoneUpdated() {
-    lastUpdatedTimezoneTime = moment();
+    lastUpdatedTimezoneTime = new Date();
 }
 
 /**
@@ -188,7 +203,8 @@ function getDBTime(timestamp = '') {
  * @returns {String}
  */
 function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
-    const newTimestamp = moment.utc(dateTime).subtract(milliseconds, 'milliseconds').valueOf();
+    const date = zonedTimeToUtc(dateTime, 'Etc/UTC');
+    const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
     return getDBTime(newTimestamp);
 }
 
