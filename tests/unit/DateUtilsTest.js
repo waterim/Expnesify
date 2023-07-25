@@ -1,6 +1,5 @@
-import moment from 'moment';
 import {formatInTimeZone} from 'date-fns-tz';
-import {addMinutes, format, subHours, subMinutes, subSeconds} from 'date-fns';
+import {addMinutes, format, subHours, subMinutes, subSeconds, setMinutes, setHours, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
@@ -27,27 +26,27 @@ describe('DateUtils', () => {
     });
 
     const datetime = '2022-11-07 00:00:00';
-    it('should return a moment object with the formatted datetime when calling getLocalMomentFromDatetime', () => {
-        const localMoment = DateUtils.getLocalMomentFromDatetime(LOCALE, datetime, 'America/Los_Angeles');
-        expect(localMoment).toEqual('2022-11-06T16:00:00-08:00');
+    it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, datetime, 'America/Los_Angeles');
+        expect(localDate).toEqual('2022-11-06T16:00:00-08:00');
     });
 
-    it('should return a moment object when calling getLocalMomentFromDatetime with null instead of a datetime', () => {
-        const localMoment = DateUtils.getLocalMomentFromDatetime(LOCALE, null, 'America/Los_Angeles');
-        expect(formatInTimeZone(new Date(), 'America/Los_Angeles', CONST.DATE.FNS_TIMEZONE_FORMAT_STRING)).toBe(localMoment);
+    it('should return a date object when calling getLocalDateFromDatetime with null instead of a datetime', () => {
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, null, 'America/Los_Angeles');
+        expect(formatInTimeZone(new Date(), 'America/Los_Angeles', CONST.DATE.FNS_TIMEZONE_FORMAT_STRING)).toBe(localDate);
     });
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
-        const today = moment.utc().set({hour: 14, minute: 32});
+        const today = setMinutes(setHours(new Date(), 14), 32);
         expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
 
-        const yesterday = moment.utc().subtract(1, 'days').set({hour: 7, minute: 43});
+        const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43);
         expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
 
-        const date = moment.utc('2022-11-05').set({hour: 10, minute: 17});
+        const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17);
         expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
 
-        const todayLowercaseDate = moment.utc().set({hour: 14, minute: 32});
+        const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32);
         expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
     });
 
@@ -115,22 +114,22 @@ describe('DateUtils', () => {
     describe('getDBTime', () => {
         it('should return the date in the format expected by the database', () => {
             const getDBTime = DateUtils.getDBTime();
-            expect(getDBTime).toBe(moment(getDBTime).format('YYYY-MM-DD HH:mm:ss.SSS'));
+            expect(getDBTime).toBe(format(new Date(getDBTime), CONST.DATE.FNS_DB_FORMAT_STRING));
         });
 
-        it('should represent the correct moment in utc when used with a standard datetime string', () => {
+        it('should represent the correct date in utc when used with a standard datetime string', () => {
             const timestamp = 'Mon Nov 21 2022 19:04:14 GMT-0800 (Pacific Standard Time)';
             const getDBTime = DateUtils.getDBTime(timestamp);
             expect(getDBTime).toBe('2022-11-22 03:04:14.000');
         });
 
-        it('should represent the correct moment in time when used with an ISO string', () => {
+        it('should represent the correct date in time when used with an ISO string', () => {
             const timestamp = '2022-11-22T03:08:04.326Z';
             const getDBTime = DateUtils.getDBTime(timestamp);
             expect(getDBTime).toBe('2022-11-22 03:08:04.326');
         });
 
-        it('should represent the correct moment in time when used with a unix timestamp', () => {
+        it('should represent the correct date in time when used with a unix timestamp', () => {
             const timestamp = 1669086850792;
             const getDBTime = DateUtils.getDBTime(timestamp);
             expect(getDBTime).toBe('2022-11-22 03:14:10.792');

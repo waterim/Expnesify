@@ -37,8 +37,8 @@ function ChronosOOOListActions(props) {
         <OfflineWithFeedback pendingAction={lodashGet(props.action, 'pendingAction', null)}>
             <View style={[styles.chatItemMessage]}>
                 {_.map(events, (event) => {
-                    const start = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
-                    const end = DateUtils.getLocalMomentFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
+                    const start = DateUtils.getLocalDateFromDatetime(props.preferredLocale, lodashGet(event, 'start.date', ''));
+                    const end = DateUtils.getLocalDateFromDatetime(props.preferredLocale, lodashGet(event, 'end.date', ''));
                     return (
                         <View
                             key={event.id}

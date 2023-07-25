@@ -3,9 +3,6 @@ import {formatDistanceToNow, subMinutes, isBefore, subMilliseconds, isToday, isT
 
 import lodashGet from 'lodash/get';
 
-// IMPORTANT: load any locales (other than english) that might be passed to moment.locale()
-import 'moment/locale/es';
-
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
@@ -36,17 +33,17 @@ Onyx.connect({
 
 /**
  * Gets the user's stored time zone NVP and returns a localized
- * Moment object for the given ISO-formatted datetime string
+ * Date object for the given ISO-formatted datetime string
  *
  * @param {String} locale
  * @param {String} datetime
  * @param {String} [currentSelectedTimezone]
  *
- * @returns  {Moment}
+ * @returns  {Date}
  *
  * @private
  */
-function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
+function getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
     if (!datetime) {
         const currentDate = new Date();
         return formatInTimeZone(currentDate, currentSelectedTimezone, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING);
@@ -72,7 +69,7 @@ function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = 
  * @returns {String}
  */
 function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone, isLowercase = false) {
-    const date = new Date(getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone));
+    const date = new Date(getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone));
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
     let todayAt = Localize.translate(locale, 'common.todayAt');
@@ -109,7 +106,7 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
 
 /**
  * Converts an ISO-formatted datetime string into a localized string representation
- * that's relative to current moment in time.
+ * that's relative to current Date in time.
  *
  * e.g.
  *
@@ -126,7 +123,7 @@ function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, curre
  * @returns {String}
  */
 function datetimeToRelative(locale, datetime) {
-    const date = getLocalMomentFromDatetime(locale, datetime);
+    const date = getLocalDateFromDatetime(locale, datetime);
     return formatDistanceToNow(new Date(date), {addSuffix: true});
 }
 
@@ -228,7 +225,7 @@ const DateUtils = {
     datetimeToRelative,
     datetimeToCalendarTime,
     startCurrentDateUpdater,
-    getLocalMomentFromDatetime,
+    getLocalDateFromDatetime,
     getCurrentTimezone,
     canUpdateTimezone,
     setTimezoneUpdated,
