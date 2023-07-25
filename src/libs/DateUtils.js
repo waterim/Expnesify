@@ -49,10 +49,10 @@ Onyx.connect({
 function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = timezone.selected) {
     if (!datetime) {
         const currentDate = new Date();
-        return formatInTimeZone(currentDate, currentSelectedTimezone, "yyyy-MM-dd'T'HH:mm:ssXXX");
+        return formatInTimeZone(currentDate, currentSelectedTimezone, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING);
     }
-    const date = new Date(datetime);
-    return formatInTimeZone(date, currentSelectedTimezone, "yyyy-MM-dd'T'HH:mm:ssXXX");
+    // new Date() is used to prevent conflicts with dates
+    return formatInTimeZone(new Date(datetime), currentSelectedTimezone, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING);
 }
 
 /**
@@ -134,7 +134,7 @@ function datetimeToRelative(locale, datetime) {
  * A throttled version of a function that updates the current date in Onyx store
  */
 const updateCurrentDate = _.throttle(() => {
-    const currentDate = format(new Date(), 'yyyy-MM-dd');
+    const currentDate = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     CurrentDate.setCurrentDate(currentDate);
 }, 1000 * 60 * 60 * 3); // 3 hours
 

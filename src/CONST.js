@@ -175,6 +175,7 @@ const CONST = {
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
+        FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
