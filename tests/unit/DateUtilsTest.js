@@ -104,13 +104,13 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
         const aFewSecondsAgo = subSeconds(new Date(), 10);
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('less than a minute ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('less than a minute');
 
         const aMinuteAgo = subMinutes(new Date(), 1);
-        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('1 minute ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('1 minute');
 
         const anHourAgo = subHours(new Date(), 1);
-        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('about 1 hour ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('about 1 hour');
     });
 
     describe('getDBTime', () => {
