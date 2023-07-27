@@ -493,6 +493,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 TASKCOMPLETED: 'TASKCOMPLETED',
@@ -2539,9 +2540,6 @@ const CONST = {
         SWITCH: 'switch',
         ADJUSTABLE: 'adjustable',
         IMAGE: 'image',
-    },
-    SETTINGS_LOUNGE_ACCESS: {
-        HEADER_IMAGE_ASPECT_RATIO: 0.64,
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
