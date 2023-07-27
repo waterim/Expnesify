@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
+import {format, parseISO} from 'date-fns';
 import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -20,13 +21,12 @@ function getParticipantLocalTime(participant, preferredLocale) {
     const reportRecipientTimezone = lodashGet(participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const reportTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale, null, reportRecipientTimezone.selected);
     const currentTimezone = DateUtils.getLocalDateFromDatetime(preferredLocale);
-    const reportRecipientDay = reportTimezone.format('dddd');
-    const currentUserDay = currentTimezone.format('dddd');
-
+    const reportRecipientDay = format(parseISO(reportTimezone), 'dddd');
+    const currentUserDay = format(parseISO(currentTimezone), 'dddd');
     if (reportRecipientDay !== currentUserDay) {
-        return `${reportTimezone.format('LT')} ${reportRecipientDay}`;
+        return `${format(parseISO(reportTimezone), 'p')} ${reportRecipientDay}`;
     }
-    return `${reportTimezone.format('LT')}`;
+    return `${format(parseISO(reportTimezone), 'p')}`;
 }
 
 function ParticipantLocalTime(props) {

@@ -3,6 +3,8 @@
  * The time auto-update logic is extracted to this component to avoid re-rendering a more complex component, e.g. DetailsPage.
  */
 import {View} from 'react-native';
+import {formatInTimeZone} from 'date-fns-tz';
+import {format, parseISO} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -24,7 +26,7 @@ const propTypes = {
 
 function AutoUpdateTime(props) {
     /**
-     * @returns {moment} Returns the locale moment object
+     * @returns {Date} Returns the locale date object
      */
     const getCurrentUserLocalTime = useCallback(
         () => DateUtils.getLocalDateFromDatetime(props.preferredLocale, null, props.timezone.selected),
@@ -33,15 +35,7 @@ function AutoUpdateTime(props) {
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
     const minuteRef = useRef(new Date().getMinutes());
-    const timezoneName = useMemo(() => {
-        // With non-GMT timezone, moment.zoneAbbr() will return the name of that timezone, so we can use it directly.
-        if (Number.isNaN(Number(currentUserLocalTime.zoneAbbr()))) {
-            return currentUserLocalTime.zoneAbbr();
-        }
-
-        // With GMT timezone, moment.zoneAbbr() will return a number, so we need to display it as GMT {abbreviations} format, e.g.: GMT +07
-        return `GMT ${currentUserLocalTime.zoneAbbr()}`;
-    }, [currentUserLocalTime]);
+    const timezoneName = useMemo(() => formatInTimeZone(currentUserLocalTime, props.timezone.selected, 'zzz'), [currentUserLocalTime, props.timezone.selected]);
 
     useEffect(() => {
         // If the any of the props that getCurrentUserLocalTime depends on change, we want to update the displayed time immediately
@@ -68,7 +62,7 @@ function AutoUpdateTime(props) {
                 {props.translate('detailsPage.localTime')}
             </Text>
             <Text numberOfLines={1}>
-                {currentUserLocalTime.format('LT')} {timezoneName}
+                {format(parseISO(currentUserLocalTime), 'p')} {timezoneName}
             </Text>
         </View>
     );
