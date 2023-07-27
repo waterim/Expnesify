@@ -400,7 +400,7 @@ function ReportActionItem(props) {
      */
     const renderReportActionItem = (hovered, isWhisper) => {
         const content = renderItemContent(hovered || isContextMenuActive);
-        console.log('props.report :>> ', props.report);
+
         if (props.draftMessage) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
