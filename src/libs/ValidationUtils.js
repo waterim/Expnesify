@@ -1,4 +1,4 @@
-import {subYears, addYears, startOfDay, endOfMonth, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
+import {subYears, addYears, startOfDay, endOfMonth, isAfter, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
 import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
@@ -56,8 +56,7 @@ function isValidDate(date) {
     const pastDate = subYears(new Date(), 1000);
     const futureDate = addYears(new Date(), 1000);
     const testDate = new Date(date);
-
-    return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
+    return isValid(testDate) && isWithinInterval(testDate, {start: pastDate, end: futureDate});
 }
 
 /**
@@ -74,7 +73,7 @@ function isValidPastDate(date) {
     const pastDate = subYears(new Date(), 1000);
     const currentDate = new Date();
     const testDate = startOfDay(new Date(date));
-    return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, currentDate);
+    return isValid(testDate) && isWithinInterval(testDate, {start: pastDate, end: currentDate});
 }
 
 /**
@@ -191,7 +190,7 @@ function isValidPaypalUsername(paypalUsername) {
 function meetsMinimumAgeRequirement(date) {
     const testDate = new Date(date);
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
-    return isValid(testDate) && (isSameDay(testDate, minDate) || isBefore(testDate, minDate));
+    return isValid(testDate) && (isSameDay(testDate, minDate) || testDate <= minDate);
 }
 
 /**
@@ -203,7 +202,7 @@ function meetsMinimumAgeRequirement(date) {
 function meetsMaximumAgeRequirement(date) {
     const testDate = new Date(date);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
-    return isValid(testDate) && (isSameDay(testDate, maxDate) || isAfter(testDate, maxDate));
+    return isValid(testDate) && (isSameDay(testDate, maxDate) || testDate > maxDate);
 }
 
 /**
@@ -225,7 +224,7 @@ function getAgeRequirementError(date, minimumAge, maximumAge) {
     if (isWithinInterval(testDate, {start: longAgoDate, end: recentDate})) {
         return '';
     }
-    if (isSameDay(testDate, recentDate) || isAfter(testDate, recentDate)) {
+    if (isSameDay(testDate, recentDate) || testDate >= recentDate) {
         return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(recentDate, CONST.DATE.FNS_FORMAT_STRING)}];
     }
     return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(longAgoDate, CONST.DATE.FNS_FORMAT_STRING)}];

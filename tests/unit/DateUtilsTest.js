@@ -1,3 +1,4 @@
+// eslint-disable-next-line you-dont-need-momentjs/no-import-moment
 import moment from 'moment';
 import {formatInTimeZone} from 'date-fns-tz';
 import {addMinutes, format, subHours, subMinutes, subSeconds} from 'date-fns';
@@ -34,7 +35,7 @@ describe('DateUtils', () => {
 
     it('should return a moment object when calling getLocalMomentFromDatetime with null instead of a datetime', () => {
         const localMoment = DateUtils.getLocalMomentFromDatetime(LOCALE, null, 'America/Los_Angeles');
-        expect(formatInTimeZone(new Date(), 'America/Los_Angeles', CONST.DATE.FNS_TIMEZONE_FORMAT_STRING)).toBe(localMoment);
+        expect(formatInTimeZone(new Date(), 'America/Los_Angeles', "yyyy-MM-dd'T'HH:mm:ssXXX")).toBe(localMoment);
     });
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
@@ -98,7 +99,7 @@ describe('DateUtils', () => {
         const millisecondsToSubtract = 5000; // 5 seconds
         const expectedDateTime = '2023-07-18T10:29:55Z';
         const result = DateUtils.subtractMillisecondsFromDateTime(initialDateTime, millisecondsToSubtract);
-        expect(format(new Date(result), CONST.DATE.FNS_TIMEZONE_FORMAT_STRING)).toBe(expectedDateTime);
+        expect(format(new Date(result), "yyyy-MM-dd'T'HH:mm:ssXXX")).toBe(expectedDateTime);
     });
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
