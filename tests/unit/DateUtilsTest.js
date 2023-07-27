@@ -1,7 +1,4 @@
-// eslint-disable-next-line you-dont-need-momentjs/no-import-moment
 import moment from 'moment';
-import {formatInTimeZone} from 'date-fns-tz';
-import {addMinutes, format, subHours, subMinutes, subSeconds} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
@@ -22,20 +19,11 @@ describe('DateUtils', () => {
         return waitForPromisesToResolve();
     });
 
-    afterEach(() => {
-        jest.useRealTimers();
-        Onyx.clear();
-    });
-
     const datetime = '2022-11-07 00:00:00';
     it('should return a moment object with the formatted datetime when calling getLocalMomentFromDatetime', () => {
         const localMoment = DateUtils.getLocalMomentFromDatetime(LOCALE, datetime, 'America/Los_Angeles');
-        expect(localMoment).toEqual('2022-11-06T16:00:00-08:00');
-    });
-
-    it('should return a moment object when calling getLocalMomentFromDatetime with null instead of a datetime', () => {
-        const localMoment = DateUtils.getLocalMomentFromDatetime(LOCALE, null, 'America/Los_Angeles');
-        expect(formatInTimeZone(new Date(), 'America/Los_Angeles', "yyyy-MM-dd'T'HH:mm:ssXXX")).toBe(localMoment);
+        expect(moment.isMoment(localMoment)).toBe(true);
+        expect(moment(localMoment).format()).toEqual('2022-11-06T16:00:00-08:00');
     });
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
@@ -47,70 +35,17 @@ describe('DateUtils', () => {
 
         const date = moment.utc('2022-11-05').set({hour: 10, minute: 17});
         expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
-
-        const todayLowercaseDate = moment.utc().set({hour: 14, minute: 32});
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
-    });
-
-    it('should update timezone if automatic and selected timezone do not match', () => {
-        Intl.DateTimeFormat = jest.fn(() => ({
-            resolvedOptions: () => ({timeZone: 'America/Chicago'}),
-        }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'Etc/UTC', automatic: true}}}).then(() => {
-            const result = DateUtils.getCurrentTimezone();
-            expect(result).toEqual({
-                selected: 'America/Chicago',
-                automatic: true,
-            });
-        });
-    });
-
-    it('should not update timezone if automatic and selected timezone match', () => {
-        Intl.DateTimeFormat = jest.fn(() => ({
-            resolvedOptions: () => ({timeZone: 'Etc/UTC'}),
-        }));
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {999: {timezone: {selected: 'Etc/UTC', automatic: true}}}).then(() => {
-            const result = DateUtils.getCurrentTimezone();
-            expect(result).toEqual({
-                selected: 'Etc/UTC',
-                automatic: true,
-            });
-        });
-    });
-
-    it('canUpdateTimezone should return true when lastUpdatedTimezoneTime is more than 5 minutes ago', () => {
-        // Use fake timers to control the current time
-        jest.useFakeTimers('modern');
-        jest.setSystemTime(addMinutes(new Date(), 6));
-        const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
-        expect(isUpdateTimezoneAllowed).toBe(true);
-    });
-
-    it('canUpdateTimezone should return false when lastUpdatedTimezoneTime is less than 5 minutes ago', () => {
-        // Use fake timers to control the current time
-        jest.useFakeTimers('modern');
-        jest.setSystemTime(addMinutes(new Date(), 4));
-        const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
-        expect(isUpdateTimezoneAllowed).toBe(false);
-    });
-
-    it('subtractMillisecondsFromDateTime should subtract milliseconds from a given date and time', () => {
-        const initialDateTime = '2023-07-18 10:30:00Z';
-        const millisecondsToSubtract = 5000; // 5 seconds
-        const expectedDateTime = '2023-07-18T10:29:55Z';
-        const result = DateUtils.subtractMillisecondsFromDateTime(initialDateTime, millisecondsToSubtract);
-        expect(format(new Date(result), "yyyy-MM-dd'T'HH:mm:ssXXX")).toBe(expectedDateTime);
     });
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
-        const aFewSecondsAgo = subSeconds(new Date(), 10);
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('less than a minute');
+        const aFewSecondsAgo = moment().subtract(10, 'seconds');
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('a few seconds ago');
 
-        const aMinuteAgo = subMinutes(new Date(), 1);
-        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('1 minute');
+        const aMinuteAgo = moment().subtract(1, 'minute');
+        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('a minute ago');
 
-        const anHourAgo = subHours(new Date(), 1);
-        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('about 1 hour');
+        const anHourAgo = moment().subtract(1, 'hour');
+        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('an hour ago');
     });
 
     describe('getDBTime', () => {
