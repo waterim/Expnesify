@@ -1,6 +1,5 @@
 import moment from 'moment';
 import Onyx from 'react-native-onyx';
-import {addMinutes} from 'date-fns';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -9,6 +8,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 const LOCALE = CONST.LOCALES.EN;
 
 describe('DateUtils', () => {
+    let originalNow;
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -20,9 +20,13 @@ describe('DateUtils', () => {
         return waitForPromisesToResolve();
     });
 
+    beforeEach(() => {
+        originalNow = moment.now;
+    });
+
     afterEach(() => {
-        jest.useRealTimers();
         Onyx.clear();
+        moment.now = originalNow;
     });
 
     const datetime = '2022-11-07 00:00:00';
@@ -78,17 +82,15 @@ describe('DateUtils', () => {
     });
 
     it('canUpdateTimezone should return true when lastUpdatedTimezoneTime is more than 5 minutes ago', () => {
-        // Use fake timers to control the current time
-        jest.useFakeTimers('modern');
-        jest.setSystemTime(addMinutes(new Date(), 6));
+        const currentTime = moment().add(6, 'minutes');
+        moment.now = jest.fn(() => currentTime);
         const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
         expect(isUpdateTimezoneAllowed).toBe(true);
     });
 
     it('canUpdateTimezone should return false when lastUpdatedTimezoneTime is less than 5 minutes ago', () => {
-        // Use fake timers to control the current time
-        jest.useFakeTimers('modern');
-        jest.setSystemTime(addMinutes(new Date(), 4));
+        const currentTime = moment().add(4, 'minutes');
+        moment.now = jest.fn(() => currentTime);
         const isUpdateTimezoneAllowed = DateUtils.canUpdateTimezone();
         expect(isUpdateTimezoneAllowed).toBe(false);
     });
